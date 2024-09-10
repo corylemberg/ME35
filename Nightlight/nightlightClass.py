@@ -47,7 +47,7 @@ class Nightlight:
                 i = i - RATE
             
             self.bLED.duty_u16(i)
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(0.01)
     
     async def check_button_status(self):
         while True:
