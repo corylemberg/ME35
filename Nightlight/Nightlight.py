@@ -18,6 +18,7 @@ class Nightlight:
         self.buzz.freq(440)
         self.led = neopixel.NeoPixel(Pin(28),1)
 
+    enable = 0
     buzzOn = False
 
     def changeColor(self):
@@ -35,44 +36,41 @@ class Nightlight:
         i = RATE
 
         while True:
+            print("about to breathe")
+            if self.enable:
+                print("breathing")
+                if i >= 65535:
+                    count = 0
+                elif i <= 0:
+                    count = 1
 
-            if i >= 65535:
-                count = 0
-            elif i <= 0:
-                count = 1
-
-            if count == 1:
-                i = i + RATE
-            elif count == 0:
-                i = i - RATE
+                if count == 1:
+                    i = i + RATE
+                elif count == 0:
+                    i = i - RATE
             
-            self.bLED.duty_u16(i)
+                self.bLED.duty_u16(i)
+            else:
+                self.bLED.duty_u16(0)
+
             await asyncio.sleep(0.01)
     
     async def check_button_status(self):
         while True:
-            if self.button.value() == 0:
-                print("button pressed")
-                self.changeColor()
-                self.buzzOn = True
-                await asyncio.sleep(1)
+            if self.enable:
+                if self.button.value() == 0:
+                    print("button pressed")
+                    self.changeColor()
+                    self.buzzOn = True
+                    await asyncio.sleep(1)
             await asyncio.sleep(0.01)
 
     async def buzzer(self):
-        while True:    
-            if self.buzzOn:    
-                self.buzz.duty_u16(500)
-                await asyncio.sleep(0.5)
-                self.buzz.duty_u16(0)
-                self.buzzOn = False
+        while True:
+            if self.enable:    
+                if self.buzzOn:    
+                    self.buzz.duty_u16(500)
+                    await asyncio.sleep(0.5)
+                    self.buzz.duty_u16(0)
+                    self.buzzOn = False
             await asyncio.sleep(0.1)
-
-async def main():
-    nightlight = Nightlight('GPIO20', 'GPIO1', 'GPIO18')
-    asyncio.create_task(nightlight.breathe())
-    asyncio.create_task(nightlight.check_button_status())
-    asyncio.create_task(nightlight.buzzer())
-    while True:
-        await asyncio.sleep(0.1)
-
-asyncio.run(main())
