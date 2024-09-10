@@ -18,8 +18,10 @@ class Nightlight:
         self.buzz.freq(440)
         self.led = neopixel.NeoPixel(Pin(28),1)
 
-    enable = 0
-    buzzOn = False
+        self.enable = False
+        self.buzzOn = False
+        self.neoOn = False
+        self.currentColor = (0, 100, 30)
 
     def changeColor(self):
         newColor = [0, 0, 0]
@@ -27,8 +29,7 @@ class Nightlight:
         newColor[1] = random.randint(0, 127)
         newColor[2] = random.randint(0, 127)
 
-        self.led[0] = newColor
-        self.led.write()
+        self.currentColor = newColor
     
     async def breathe(self):
         RATE = 1000
@@ -36,9 +37,7 @@ class Nightlight:
         i = RATE
 
         while True:
-            print("about to breathe")
             if self.enable:
-                print("breathing")
                 if i >= 65535:
                     count = 0
                 elif i <= 0:
@@ -58,12 +57,26 @@ class Nightlight:
     async def check_button_status(self):
         while True:
             if self.enable:
+                self.neoOn = True
                 if self.button.value() == 0:
-                    print("button pressed")
+                    # the button is being pressed
                     self.changeColor()
                     self.buzzOn = True
                     await asyncio.sleep(1)
+            else:
+                self.neoOn = False
+                self.led[0] = (0, 0, 0)
+                self.led.write()
             await asyncio.sleep(0.01)
+
+    async def neo(self):
+        while True:
+            if self.neoOn:
+                self.led[0] = self.currentColor
+            else:
+                self.led[0] = (0, 0, 0)
+            self.led.write()
+            await asyncio.sleep(0.1)
 
     async def buzzer(self):
         while True:
@@ -73,4 +86,6 @@ class Nightlight:
                     await asyncio.sleep(0.5)
                     self.buzz.duty_u16(0)
                     self.buzzOn = False
+                else:
+                    self.buzz.duty_u16(0)
             await asyncio.sleep(0.1)

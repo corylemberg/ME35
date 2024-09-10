@@ -4,7 +4,7 @@ import network
 import time
 from mqtt import MQTTClient
 
-enable = 0
+enable = False
 
 def internet():
     wlan = network.WLAN(network.STA_IF)
@@ -23,9 +23,9 @@ def callback(topic, msg):
     command = msg.decode()
     print((topic.decode(), msg.decode()))
     if command == 'start':
-        enable = 1
+        enable = True
     if command == 'end':
-        enable = 0
+        enable = False
 
 async def mqtt():
     mqtt_broker = 'broker.hivemq.com' 
@@ -53,6 +53,7 @@ async def main():
     nightlight = Nightlight('GPIO20', 'GPIO1', 'GPIO18')
     asyncio.create_task(nightlight.breathe())
     asyncio.create_task(nightlight.check_button_status())
+    asyncio.create_task(nightlight.neo())
     asyncio.create_task(nightlight.buzzer())
     while True:
         nightlight.enable = enable
