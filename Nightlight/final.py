@@ -30,8 +30,8 @@ def callback(topic, msg):
 async def mqtt():
     mqtt_broker = 'broker.hivemq.com' 
     port = 1883
-    topic_sub = 'ME35-24/cory'
-    topic_pub = 'ME35-24/tell'
+    topic_sub = 'ME35-24/MedhaAndCory'
+    topic_pub = 'ME35-24/Rex'
 
     client = MQTTClient('ME35_cory', mqtt_broker , port, keepalive=60)
     client.connect()
