@@ -4,8 +4,9 @@ import network
 import time
 from mqtt import MQTTClient
 
-enable = False
+enable = False  # Global enable
 
+# Handles internet connections (must change ssid and password)
 def internet():
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
@@ -18,6 +19,7 @@ def internet():
     # We should have a valid IP now via DHCP
     print(wlan.ifconfig())
 
+# Callback function for MQTT. Sets global enable
 def callback(topic, msg):
     global enable
     command = msg.decode()
@@ -27,6 +29,7 @@ def callback(topic, msg):
     if command == 'end':
         enable = False
 
+# MQTT initialization and handler function
 async def mqtt():
     mqtt_broker = 'broker.hivemq.com' 
     port = 1883
@@ -47,6 +50,7 @@ async def mqtt():
         client.check_msg()
         await asyncio.sleep(1)
 
+# Creates and runs tasks
 async def main():
     global enable
     asyncio.create_task(mqtt())
