@@ -1,14 +1,14 @@
-# buttonPin is GPIO20
-# blueLEDPin is GPIO1
-# buzzerPin is GPIO18
-
 from machine import Pin, PWM
 import uasyncio as asyncio
 import random
 import neopixel
 
+# buttonPin is GPIO20
+# blueLEDPin is GPIO1
+# buzzerPin is GPIO18
 
 class Nightlight:
+    # Initialize GPIO values and enable variables
     def __init__(self, buttonPin, blueLEDPin, buzzerPin):
 
         self.button = Pin(buttonPin, Pin.IN)
@@ -23,11 +23,8 @@ class Nightlight:
         self.neoOn = False
         self.currentColor = [0, 10, 5]
 
+    # Changes the neopixel color based on a randomly selected index
     def changeColor(self):
-        # newColor = [0, 0, 0]
-        # newColor[0] = random.randint(0, 127)
-        # newColor[1] = random.randint(0, 127)
-        # newColor[2] = random.randint(0, 127)
         prevColor = self.currentColor
         colorList = [[10, 0, 0], [10, 2, 0], [10, 5, 0], 
                      [0, 10, 0], [0, 10, 5], [0, 3, 10],
@@ -38,12 +35,12 @@ class Nightlight:
                 newColor = colorList[random.randint(0, 8)]
             else:
                 break
-        print(newColor)
         self.currentColor = newColor
     
+    # Creates a counter to control the blue LED duty cycle
     async def breathe(self):
         RATE = 1000
-        count = 1
+        count = 1 # 1 if counting up, 0 if counting down
         i = RATE
 
         while True:
@@ -64,19 +61,20 @@ class Nightlight:
 
             await asyncio.sleep(0.01)
     
+    # Determines the state of the button
     async def check_button_status(self):
         while True:
             if self.enable:
                 self.neoOn = True
-                if self.button.value() == 0:
-                    # the button is being pressed
+                if self.button.value() == 0: # The button is being pressed
                     self.changeColor()
                     self.buzzOn = True
-                    await asyncio.sleep(1)
-            else:
+                    await asyncio.sleep(0.5)
+            else: # The buttton is not being pressed
                 self.neoOn = False
             await asyncio.sleep(0.01)
 
+    # Handler function for the neopixel based on the neoOn enable
     async def neo(self):
         while True:
             if self.neoOn:
@@ -86,6 +84,7 @@ class Nightlight:
             self.led.write()
             await asyncio.sleep(0.01)
 
+    # Handler function for the buzzer
     async def buzzer(self):
         while True:
             if self.enable:    
