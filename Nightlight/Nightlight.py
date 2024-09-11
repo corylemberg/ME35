@@ -21,14 +21,24 @@ class Nightlight:
         self.enable = False
         self.buzzOn = False
         self.neoOn = False
-        self.currentColor = (0, 100, 30)
+        self.currentColor = [0, 10, 5]
 
     def changeColor(self):
-        newColor = [0, 0, 0]
-        newColor[0] = random.randint(0, 127)
-        newColor[1] = random.randint(0, 127)
-        newColor[2] = random.randint(0, 127)
-
+        # newColor = [0, 0, 0]
+        # newColor[0] = random.randint(0, 127)
+        # newColor[1] = random.randint(0, 127)
+        # newColor[2] = random.randint(0, 127)
+        prevColor = self.currentColor
+        colorList = [[10, 0, 0], [10, 2, 0], [10, 5, 0], 
+                     [0, 10, 0], [0, 10, 5], [0, 3, 10],
+                     [5, 0, 10], [10, 5, 2], [10, 10, 10]]
+        newColor = colorList[random.randint(0, 8)]
+        while True:
+            if newColor == prevColor:
+                newColor = colorList[random.randint(0, 8)]
+            else:
+                break
+        print(newColor)
         self.currentColor = newColor
     
     async def breathe(self):
@@ -65,8 +75,6 @@ class Nightlight:
                     await asyncio.sleep(1)
             else:
                 self.neoOn = False
-                self.led[0] = (0, 0, 0)
-                self.led.write()
             await asyncio.sleep(0.01)
 
     async def neo(self):
@@ -76,7 +84,7 @@ class Nightlight:
             else:
                 self.led[0] = (0, 0, 0)
             self.led.write()
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.01)
 
     async def buzzer(self):
         while True:
@@ -88,4 +96,4 @@ class Nightlight:
                     self.buzzOn = False
                 else:
                     self.buzz.duty_u16(0)
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.01)
