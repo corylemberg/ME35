@@ -69,10 +69,9 @@ class Nightlight:
             if self.enable:
                 self.neoOn = True
                 if self.button.value() == 0 or self.bump: # The button is being pressed
-                    print("here")
                     self.changeColor()
                     self.buzzOn = True
-                    await asyncio.sleep(0.5)
+                    await asyncio.sleep(1)
             else: # The buttton is not being pressed
                 self.neoOn = False
             await asyncio.sleep(0.01)
@@ -95,42 +94,15 @@ class Nightlight:
                     # self.buzz.duty_u16(50000)
                     # await asyncio.sleep(0.5)
                     # self.buzz.duty_u16(0)
-                    self.song()
-                    self.buzzOn = False
+                    n = [262, 262, 392, 392, 440, 440, 392]
+                    # n = [262, 294, 330, 392, 440, 392, 330, 294, 262]
+                    for i in n:
+                        self.buzz.freq(i)
+                        self.buzz.duty_u16(20000)
+                        await asyncio.sleep(0.25)
+                        self.buzz.duty_u16(0)
+                        await asyncio.sleep(0.1)
+                        self.buzzOn = False
                 else:
                     self.buzz.duty_u16(0)
             await asyncio.sleep(0.01)
-
-    def playRunaway(self):
-        n = [330, 165, 311, 156, 277, 139, 220, 208]
-        
-        self.playNote(n[0])
-        self.playNote(n[0])
-        self.playNote(n[0])
-        self.playNote(n[1])
-
-        self.playNote(n[2])
-        self.playNote(n[2])
-        self.playNote(n[2])
-        self.playNote(n[3])
-        
-        self.playNote(n[4])
-        self.playNote(n[4])
-        self.playNote(n[4])
-        self.playNote(n[5])
-
-        self.playNote(n[6])
-        self.playNote(n[6])
-        self.playNote(n[6])
-        self.playNote(n[7])
-
-    async def song(self):
-        n = [262, 294, 330, 392, 440, 392, 330, 294, 262]
-
-        if self.enable:
-            for i in n:
-                self.buzz.freq(i)
-                self.buzz.duty_u16(30000)
-                await asyncio.sleep(0.1)
-                self.buzz.duty_u16(0)
-                await asyncio.sleep(0.1)

@@ -40,19 +40,18 @@ async def mqtt():
     mqtt_broker = 'broker.hivemq.com' 
     port = 1883
     topic_sub = 'ME35-24/cory'
-    topic_pub = 'ME35-24/cory'
+    topic_pub = 'ME35-24/Aengus'
 
     client = MQTTClient('ME35_cory', mqtt_broker , port, keepalive=60)
     client.connect()
     client.set_callback(callback)          # set the callback if anything is read
     client.subscribe(topic_sub.encode())   # subscribe to a bunch of topics
     
-    msg = 'working...'
-    i = 0
+    msg = 'Team Up!'
     while True:
-        i+=1
-        if i %5 == 0:
+        if bump:
             client.publish(topic_pub.encode(),msg.encode())
+            await asyncio.sleep(0)
         client.check_msg()
         await asyncio.sleep(1)
 
