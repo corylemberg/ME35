@@ -1,10 +1,16 @@
 from Nightlight import Nightlight
+from machine import Pin, PWM, I2C
 import uasyncio as asyncio
 import network
 import time
 from mqtt import MQTTClient
+from Acceleration import Acceleration
+from math import sqrt
 
 enable = False  # Global enable
+bump = False
+scl = Pin('GPIO27', Pin.OUT)
+sda = Pin('GPIO26', Pin.OUT)
 
 # Handles internet connections (must change ssid and password)
 def internet():
@@ -24,17 +30,17 @@ def callback(topic, msg):
     global enable
     command = msg.decode()
     print((topic.decode(), msg.decode()))
-    if command == 'start':
+    if command == 'on':
         enable = True
-    if command == 'end':
+    if command == 'off':
         enable = False
 
 # MQTT initialization and handler function
 async def mqtt():
     mqtt_broker = 'broker.hivemq.com' 
     port = 1883
-    topic_sub = 'ME35-24/MedhaAndCory'
-    topic_pub = 'ME35-24/Rex'
+    topic_sub = 'ME35-24/cory'
+    topic_pub = 'ME35-24/cory'
 
     client = MQTTClient('ME35_cory', mqtt_broker , port, keepalive=60)
     client.connect()
@@ -50,17 +56,38 @@ async def mqtt():
         client.check_msg()
         await asyncio.sleep(1)
 
+async def monitor_accelerometer(t):
+    global bump
+    mag = 0
+    while True:
+        if enable:    
+            data = t.read_accel()
+            newMag = sqrt(data[0]*data[0] + data[1]*data[1] + data[2]*data[2])
+            value = newMag - mag
+            if abs(value) > 1000:
+                bump = True
+                await asyncio.sleep(0.3)
+                bump = False
+            mag = newMag
+        await asyncio.sleep(0.1)
+
 # Creates and runs tasks
 async def main():
     global enable
+    global scl
+    global sda
+    global bump
     asyncio.create_task(mqtt())
-    nightlight = Nightlight('GPIO20', 'GPIO1', 'GPIO18')
+    nightlight = Nightlight('GPIO20', 'GPIO0', 'GPIO19')
+    t = Acceleration(scl, sda)
     asyncio.create_task(nightlight.breathe())
     asyncio.create_task(nightlight.check_button_status())
     asyncio.create_task(nightlight.neo())
     asyncio.create_task(nightlight.buzzer())
+    asyncio.create_task(monitor_accelerometer(t))
     while True:
         nightlight.enable = enable
+        nightlight.bump = bump
         await asyncio.sleep(0.1)
 
 internet()
