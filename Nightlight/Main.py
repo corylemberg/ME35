@@ -40,34 +40,33 @@ async def mqtt():
     mqtt_broker = 'broker.hivemq.com' 
     port = 1883
     topic_sub = 'ME35-24/cory'
-    topic_pub = 'ME35-24/Aengus'
+    topic_pub = 'ME35-24/Kaisnightlight'
 
     client = MQTTClient('ME35_cory', mqtt_broker , port, keepalive=60)
     client.connect()
     client.set_callback(callback)          # set the callback if anything is read
     client.subscribe(topic_sub.encode())   # subscribe to a bunch of topics
     
-    msg = 'Team Up!'
+    msg = 'Turn On'
     while True:
-        if bump:
+        if bump and not enable:
             client.publish(topic_pub.encode(),msg.encode())
             await asyncio.sleep(0)
         client.check_msg()
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.25)
 
 async def monitor_accelerometer(t):
     global bump
     mag = 0
-    while True:
-        if enable:    
-            data = t.read_accel()
-            newMag = sqrt(data[0]*data[0] + data[1]*data[1] + data[2]*data[2])
-            value = newMag - mag
-            if abs(value) > 1000:
-                bump = True
-                await asyncio.sleep(0.3)
-                bump = False
-            mag = newMag
+    while True:   
+        data = t.read_accel()
+        newMag = sqrt(data[0]*data[0] + data[1]*data[1] + data[2]*data[2])
+        value = newMag - mag
+        if abs(value) > 1000 and mag != 0:
+            bump = True
+            await asyncio.sleep(0.3)
+            bump = False
+        mag = newMag
         await asyncio.sleep(0.1)
 
 # Creates and runs tasks
@@ -77,7 +76,7 @@ async def main():
     global sda
     global bump
     asyncio.create_task(mqtt())
-    nightlight = Nightlight('GPIO20', 'GPIO0', 'GPIO19')
+    nightlight = Nightlight('GPIO20', 'GPIO15', 'GPIO0', 'GPIO19')
     t = Acceleration(scl, sda)
     asyncio.create_task(nightlight.breathe())
     asyncio.create_task(nightlight.check_button_status())
