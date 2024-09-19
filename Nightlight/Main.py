@@ -47,7 +47,7 @@ async def mqtt():
     client.set_callback(callback)          # set the callback if anything is read
     client.subscribe(topic_sub.encode())   # subscribe to a bunch of topics
     
-    msg = 'Turn On'
+    msg = 'blink'
     while True:
         if bump and not enable:
             client.publish(topic_pub.encode(),msg.encode())
