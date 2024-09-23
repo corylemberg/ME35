@@ -1,4 +1,6 @@
-# Tufts_ble.py
+# This is a minimal library that only advertises (Yells) and reads advertisements (Sniff).
+# It also uses the first character to filter out advertisements.
+
 import bluetooth
 import time
 import struct
@@ -14,11 +16,12 @@ class Sniff:
         self._ble.irq(self._irq)
         self.scanning = False 
         self.last = None
+        self.rssi = 0
         self.verbose = verbose
         self.discriminator = discriminator
 
     def _irq(self, event, data):
-        if event == IRQ_SCAN_RESULT: 
+        if event == IRQ_SCAN_RESULT: #check to see if it is a serialperipheral
             addr_type, addr, adv_type, rssi, adv_data = data
             name = self.decode_name(adv_data)
             if self.verbose:
@@ -27,6 +30,8 @@ class Sniff:
                 return
             if name[0] == self.discriminator:
                 self.last = name
+                self.rssi = rssi
+                print(f"Found: {name}, RSSI: {rssi}")
 
         elif event == IRQ_SCAN_DONE:  # close everything
             self.scanning = False
@@ -54,3 +59,16 @@ class Sniff:
         self._scan_callback = None
         self._ble.gap_scan(None)
         self.scanning = False
+
+class Yell:
+    def __init__(self):
+        self._ble = bluetooth.BLE()
+        self._ble.active(True)
+        
+    def advertise(self, name = 'Pico', interval_us=100000):
+        short = name[:8]
+        payload = struct.pack("BB", len(short) + 1, NAME_FLAG) + name[:8]  # byte length, byte type, value
+        self._ble.gap_advertise(interval_us, adv_data=payload)
+        
+    def stop_advertising(self):
+        self._ble.gap_advertise(None)
