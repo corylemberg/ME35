@@ -25,13 +25,14 @@ class Sniff:
             addr_type, addr, adv_type, rssi, adv_data = data
             name = self.decode_name(adv_data)
             if self.verbose:
-                print('.',end='')
+                # print('.',end='')
+                pass
             if name == '':
                 return
             if name[0] == self.discriminator:
                 self.last = name
                 self.rssi = rssi
-                print(f"Found: {name}, RSSI: {rssi}")
+                # print(f"Found: {name}, RSSI: {rssi}")
 
         elif event == IRQ_SCAN_DONE:  # close everything
             self.scanning = False
