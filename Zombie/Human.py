@@ -11,7 +11,8 @@ class Human:
         self.timeLastHit = [0] * 13
         self.led = neopixel.NeoPixel(Pin(28),1)
         self.buzzer = PWM(Pin('GPIO18', Pin.OUT))
-        self.buzzer.freq(260)
+        self.buzzer.freq(220)
+        self.hit = 0
     
     def check_health(self):
         for i in range(len(self.hitCounter)):
@@ -41,8 +42,12 @@ class Human:
 
     async def buzz(self):
         while True:
+            if self.hit:
+                self.buzzer.duty_u16(2000)
+                await asyncio.sleep(0.2)
+                self.buzzer.duty_u16(0)
+                self.hit = 0
             while self.zombie:
-                self.buzzer.freq(220)
-                self.buzzer.duty_u16(10000)
+                self.buzzer.duty_u16(2000)
                 await asyncio.sleep(0)
             await asyncio.sleep(0)

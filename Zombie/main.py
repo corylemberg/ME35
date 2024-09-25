@@ -1,10 +1,12 @@
 import time
-from Zombie.Tufts_ble import Sniff, Yell
+from Tufts_ble import Sniff, Yell
 from Human import Human
 import asyncio
+from SevenSeg import SevenSeg
 
-THREASHOLD = -40
+THREASHOLD = -60
 john = Human(zombie=0, ID=8)
+ss = SevenSeg()
 
 c = Sniff('!', verbose = True)
 c.scan(0)   # 0ms = scans forever 
@@ -16,14 +18,15 @@ async def run():
     in the human class.
     '''
     currTime = 0
+    ss.human = 1
     while not john.zombie:
         john.check_health()
         latest = c.last
-        # print(c.rssi)
         if latest:
             c.last='' # clear the flag for the next advertisement
             if latest[1:].isdigit() :  # Count only if number
                 message = int(latest[1:])
+                print(f'{message} is at {c.rssi}')
                 if c.rssi > THREASHOLD and message != john.ID:
                     currTime = time.time_ns() // 1000000
                     if john.timeFirstHit[message - 1] == 0:
@@ -43,6 +46,8 @@ async def run():
                         
                         if john.timeLastHit[message - 1] - john.timeFirstHit[message - 1] >= 3000:
                             print(f'\n\n\nHIT\n\n\n')
+                            ss.hitBy = message
+                            john.hit = 1
                             john.hitCounter[message - 1] += 1
                             john.timeLastHit[message - 1] = 0
                             john.timeFirstHit[message - 1] = 0
@@ -54,7 +59,9 @@ async def run():
     '''
     p = Yell()
     print(f'Zombie: {john.ID}')
+    ss.human = 0
     while john.zombie:
+        ss.display(str(john.ID))
         p.advertise(f'!{john.ID}')
         await asyncio.sleep(0.1)
         p.stop_advertising()
@@ -63,6 +70,7 @@ async def main():
     asyncio.create_task(run())
     asyncio.create_task(john.light())
     asyncio.create_task(john.buzz())
+    asyncio.create_task(ss.snake())
     while True:
         await asyncio.sleep(0.01)
     
