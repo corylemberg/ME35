@@ -54,10 +54,7 @@ while True:
         print("Tag Family %s, Tag ID %d, rotation %f (degrees)" % (tag_name, tag_id, tag_rotation))
 
     if currentTag == f'42, 16':
-        if tag_rotation > 180:
-            client.publish("ME35-24/cory", 'drive')
-        else:
-            client.publish("ME35-24/cory", 'brake')
+        client.publish("ME35-24/kai", str(tag_rotation))
 
 
     print(clock.fps())
