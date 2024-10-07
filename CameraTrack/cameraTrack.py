@@ -42,19 +42,28 @@ def degrees(radians):
     return (180 * radians) / math.pi
 
 
-Kp = 65535 / 10     # Control Constant
-Kd = 65535 / 20
-en = [0, 0]         # Enables (first is left, second is right)
+Kp = 65535 / 20     # Control Constant
+Kd = 65535 / 30
 
 motorControl = 0
 error = 0
+prevError = 0
+reset = 0
 
 while True:
     clock.tick()
     img = sensor.snapshot()
+
+    reset += 1
+
+    if reset >= 10:
+        motorControl = max(0, motorControl - 1000)
     
     # Loop if tag is detected
     for tag in img.find_apriltags(fx=f_x, fy=f_y, cx=c_x, cy=c_y):  # defaults to TAG36H11
+        
+        reset = 0
+        
         img.draw_rectangle(tag.rect, color=(255, 0, 0))
         img.draw_cross(tag.cx, tag.cy, color=(0, 255, 0))
         print_args = (
@@ -69,13 +78,13 @@ while True:
         # print("Tx: %f, Ty %f, Tz %f, Rx %f, Ry %f, Rz %f" % print_args)
         print(f'Z coordinate: {tag.z_translation}')
         
-        prevError = error
+        # prevError = error
         error = 0 - tag.z_translation
 
-        derivative = error - prevError
+        # derivative = error - prevError
 
-        motorControl = abs(int(Kp * error + Kd * derivative))
-
+        # motorControl = abs(int(Kp * error + Kd * derivative))
+        motorControl = abs(int(Kp * error))
         
         if error >= 0:
             leftEN.on()
@@ -84,8 +93,8 @@ while True:
             leftEN.off()
             rightEN.on()
         
-        pwm.duty_u16(motorControl)
-
-        print(motorControl)
+    pwm.duty_u16(motorControl)
     
+    print(motorControl)
+
     # print(clock.fps())
