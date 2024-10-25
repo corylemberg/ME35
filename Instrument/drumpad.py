@@ -5,7 +5,7 @@ from Adafruit_Trellis import AdafruitTrellis
 # Constants for modes
 MOMENTARY = 0
 LATCHING = 1
-MODE = LATCHING  # Set the mode here
+MODE = MOMENTARY  # Set the mode here
 
 # I2C setup
 i2c = I2C(0, scl=Pin(1), sda=Pin(0), freq=400000)  # Adjust pins and frequency
@@ -35,8 +35,12 @@ for i in range(numKeys):
 while True:
     time.sleep(0.03)  # 30ms delay
 
+    trellis.displaybuffer[1] = 0x40
+    trellis.write_display()
+
     if trellis.read_switches():
         # print("Keys State:", trellis.keys)
+        print("LED State:", trellis.displaybuffer)
         for i in range(numKeys):
             if MODE == MOMENTARY:
                 if trellis.just_pressed(i):

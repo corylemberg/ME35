@@ -138,13 +138,82 @@ class AdafruitTrellis:
         """Turn on an LED at position x."""
         if x > 15:
             return
-        self.displaybuffer[x >> 4] |= (1 << (x & 0x0F))
+        
+        print(f'In set_led, x = {x}')
+        
+        if x == 0:
+            self.displaybuffer[4] |= 0x08
+        if x == 1:
+            self.displaybuffer[4] |= 0x10
+        if x == 2:
+            self.displaybuffer[6] |= 0x20
+        if x == 3:
+            self.displaybuffer[2] |= 0x40
+        if x == 4:
+            self.displaybuffer[6] |= 0x80
+        if x == 5:
+            self.displaybuffer[5] |= 0x01
+        if x == 6:
+            self.displaybuffer[5] |= 0x02
+        if x == 7:
+            self.displaybuffer[7] |= 0x04
+        if x == 8:
+            self.displaybuffer[3] |= 0x08
+        if x == 9:
+            self.displaybuffer[1] |= 0x10
+        if x == 10:
+            self.displaybuffer[1] |= 0x20
+        if x == 11:
+            self.displaybuffer[1] |= 0x40
+        if x == 12:
+            self.displaybuffer[2] |= 0x01
+        if x == 13:
+            self.displaybuffer[6] |= 0x10
+        if x == 14:
+            self.displaybuffer[2] |= 0x02
+        if x == 15:
+            self.displaybuffer[0] |= 0x04
+
+        # self.displaybuffer[x >> 4] |= (1 << (x & 0x0F))
 
     def clr_led(self, x):
         """Turn off an LED at position x."""
         if x > 15:
             return
-        self.displaybuffer[x >> 4] &= ~(1 << (x & 0x0F))
+        if x == 0:
+            self.displaybuffer[4] &= ~0x08
+        if x == 1:
+            self.displaybuffer[4] &= ~0x10
+        if x == 2:
+            self.displaybuffer[6] &= ~0x20
+        if x == 3:
+            self.displaybuffer[2] &= ~0x40
+        if x == 4:
+            self.displaybuffer[6] &= ~0x80
+        if x == 5:
+            self.displaybuffer[5] &= ~0x01
+        if x == 6:
+            self.displaybuffer[5] &= ~0x02
+        if x == 7:
+            self.displaybuffer[7] &= ~0x04
+        if x == 8:
+            self.displaybuffer[3] &= ~0x08
+        if x == 9:
+            self.displaybuffer[1] &= ~0x10
+        if x == 10:
+            self.displaybuffer[1] &= ~0x20
+        if x == 11:
+            self.displaybuffer[1] &= ~0x40
+        if x == 12:
+            self.displaybuffer[2] &= ~0x01
+        if x == 13:
+            self.displaybuffer[6] &= ~0x10
+        if x == 14:
+            self.displaybuffer[2] &= ~0x02
+        if x == 15:
+            self.displaybuffer[0] &= ~0x04
+
+        # self.displaybuffer[x >> 4] &= ~(1 << (x & 0x0F))
 
     def just_pressed(self, k):
         """Check if a key was just pressed."""

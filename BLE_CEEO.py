@@ -367,7 +367,7 @@ class Yell(Useful):
             return
         for conn_handle in self._connections:
             self._ble.gatts_notify(conn_handle, self._handle_tx, data)
-        self.printIt("sent to %d central(s): %s" % (len(self._connections), data))
+        # self.printIt("sent to %d central(s): %s" % (len(self._connections), data))
 '''
 def main(mode = 'P'): 
     if mode == 'P':
