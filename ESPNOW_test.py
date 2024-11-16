@@ -3,11 +3,32 @@ from networking import Networking
 
 #Initialise
 networking = Networking()
-
-###Example code###
-
 recipient_mac = b'\x54\x32\x04\x21\x61\x9C' #This mac sends to all
-message =  b'Boop'
+message =  'sup'
+while True:
+    networking.aen.send(recipient_mac, message)
+    print()
+    time.sleep(3)
+
+# #Set up an interrupt which runs a function as soon as possible after receiving a new message
+# def receive():
+#     print("Receive")
+#     # for mac, message, rtime in networking.aen.return_messages(): #You can directly iterate over the function
+#     #     print(mac, message, rtime)
+
+# while True:
+#     lastmsg = str(networking.aen.irq(receive))
+#     #convert lastmsg to just the id number
+#     colon = 0
+#     idnumber = ''
+#     for i in lastmsg:
+#         print(i)
+#         if i == ":":
+#             colon +=1
+#         if colon == 2:
+#             idnumber = idnumber + i
+#     print(idnumber)
+#     time.sleep(0.5)
 
 # #Print own mac
 # print(networking.sta._sta.config('mac'))
@@ -22,8 +43,10 @@ message =  b'Boop'
 # print()
 
 #Message, sends the specified message to the recipient, supported formats are bytearrays, bytes, int, float, string, bool, list and dict, if above 241 bytes, it will send in multiple packages: max 60928 bytes
-networking.aen.send(recipient_mac, message)
-print()
+while True:
+    networking.aen.send(recipient_mac, message)
+    print()
+    time.sleep(3)
 
 # #Check if there are any messages in the message buffer
 # print(networking.aen.check_messages())
@@ -33,20 +56,14 @@ print()
 # print(networking.aen.return_message()) #Returns none, none, none if there are no messages
 # print()
 
-# #Get the RSSI table
-# print(networking.aen.rssi())
-# print()
+#Get the RSSI table
+print(networking.aen.rssi())
+print()
 
 # #Get All Recieved Messages
 # messages = networking.aen.return_messages()
 # for mac, message, receive_time in messages:
 #     print(mac, message, receive_time)
-    
-#Set up an interrupt which runs a function as soon as possible after receiving a new message
-def receive():
-    print("Receive")
-    # for mac, message, rtime in networking.aen.return_messages(): #You can directly iterate over the function
-    #     print(mac, message, rtime)
 
 
 networking.aen.irq(receive) #interrupt handler

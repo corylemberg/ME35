@@ -1,7 +1,13 @@
 import asyncio
 import neopixel
 from machine import Pin, PWM
-from Tufts_ble import Sniff, Yell
+import time
+from networking import Networking
+
+#Initialise
+networking = Networking()
+recipient_mac = b'\x54\x32\x04\x33\x48\x14' #This mac sends to all
+
 
 RED = (100, 0, 0)
 BLUE = (0, 0, 100)
@@ -17,28 +23,37 @@ class Wizard:
         self.led = neopixel.NeoPixel(Pin(28),1)
         self.hit = 0
 
+
+    def receive(self):
+        print("Receive")
+        msg = ''
+        for mac, message, rtime in networking.aen.return_messages(): #You can directly iterate over the function
+            msg = message
+        return msg
     '''
     Function to handle Wizard health. Each wizard has 1 life. If they are hit
     once they will "die" and not be in the game anymore. Hits are determined based
     on proximity to the Dragon.
     '''
     async def check_health(self):
-        c = Sniff('!', verbose = True)
-        c.scan(0)   # 0ms = scans forever
-        p = Yell()
         while True:
 
-            # Read message if the player has lives
-            latest = c.last
-            if latest:
-                c.last='' # clear the flag for the next advertisement
-                message = latest[1:]
-                if message == 'roar':
-                    self.hit = 1
+            # Read from ESPNOW
+
+            networking.aen.irq(self.receive())
+            lastmsg = self.receive()
+            placeholder = networking.aen.rssi()
+            rssi_value = placeholder[b'T2\x043H\x14'][0]
+            
+            # if message is detected AND rssi is within the threashold, player gets hit
+
+            if lastmsg == 'breathingFire' and rssi_value > -70:
+                self.hit = 1
 
             # If a player is dead, advertise their ID, if not, put them in jail
             if self.hit == 1:
-                p.advertise(f'!{self.ID}')
+                message =  f'{self.ID}'
+                networking.aen.send(recipient_mac, message)
             
             await asyncio.sleep(0.1)
 
