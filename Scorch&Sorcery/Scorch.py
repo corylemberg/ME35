@@ -3,17 +3,6 @@ from machine import Pin
 import time
 from networking import Networking
 
-RED = (100, 0, 0)
-ORANGE = (100, 65, 0)
-BLUE = (0, 0, 100)
-WHITE = (100, 100, 100)
-GREEN = (0, 128, 0)
-OFF = (0, 0, 0)
-
-#Initialise
-networking = Networking()
-recipient_mac = b'\xFF\xFF\xFF\xFF\xFF\xFF' #This mac sends to all
-
 class Dragon:
     def __init__(self, playerCount = 4):
         self.button = Pin('GPIO20', Pin.IN)
@@ -23,27 +12,25 @@ class Dragon:
         self.scorched = False #Boolean when all wizards have been scorched
         self.wizards = {
         }
-        self.msg = ''
         self.incomingMac = b'\x00\x00\x00\x00\x00\x00'
         self.playerCount = playerCount
 
+        #Initialise ESPNOW
+        self.networking = Networking()
+        self.recipient_mac = b'\xFF\xFF\xFF\xFF\xFF\xFF' #This mac sends to all
 
     def receive(self):
         print("Receive")
-        for mac, message, rtime in networking.aen.return_messages(): #You can directly iterate over the function
-            self.msg = message
+        for mac, message, rtime in self.networking.aen.return_messages(): #You can directly iterate over the function
             self.incomingMac = mac
 
     async def listen_ID(self):
-        
         while True:
-
             if self.scorched:
                 break
 
-            # Receive wizard id
-            networking.aen.irq(self.receive())
-
+            # Receive Wizard Mac Address
+            self.networking.aen.irq(self.receive())
             if self.incomingMac != None:
                 self.wizards[self.incomingMac] = 1
 
@@ -51,17 +38,15 @@ class Dragon:
             if len(self.wizards) == self.playerCount:
                 self.scorched = True
 
-            self.msg = ''
-
             await asyncio.sleep(0.1)
 
     async def breath_fire(self):
         prevButton = 0
-        message =  'breathingFire'
+        message = 'breathingFire'
         while True:
             # Conditional to Breath Fire if button is pressed and not on cooldown
             if self.button != prevButton and prevButton and not self.cooldown:
-                networking.aen.echo(recipient_mac, message)
+                self.networking.aen.echo(self.recipient_mac, message)
                 self.cooldown = 1
             prevButton = self.button
             await asyncio.sleep(0.05)
@@ -75,7 +60,6 @@ class Dragon:
 
     async def neoPixel(self):
         while True:
-            
             # Blink orange to indicate cooldown
             if self.cooldown:
                 self.led[0] = ORANGE

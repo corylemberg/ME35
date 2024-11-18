@@ -4,30 +4,22 @@ from machine import Pin, PWM
 import time
 from networking import Networking
 
-#Initialise
-networking = Networking()
-recipient_mac = b'\x54\x32\x04\x33\x48\x14' #This mac sends to all
-
-
-RED = (100, 0, 0)
-BLUE = (0, 0, 100)
-WHITE = (100, 100, 100)
-OFF = (0, 0, 0)
-
 class Wizard:
-    def __init__(self, ID):
-        self.ID = ID
-        self.timeFirstHit = 0
-        self.hitCounter = 0
-        self.timeLastHit = 0
+    def __init__(self):
         self.led = neopixel.NeoPixel(Pin(28),1)
         self.hit = 0
         self.msg = ''
+        
+        #Initialise ESPNOW
+        self.networking = Networking()
+        self.recipient_mac = b'\x54\x32\x04\x33\x48\x14'
 
-
+    '''
+    Handler function for ESPNOW. Extracts message and stores it in class variable
+    '''
     def receive(self):
         print("Receive")
-        for mac, message, rtime in networking.aen.return_messages(): #You can directly iterate over the function
+        for mac, message, rtime in self.networking.aen.return_messages(): #You can directly iterate over the function
             self.msg = message
     
     '''
@@ -37,29 +29,24 @@ class Wizard:
     '''
     async def check_health(self):
         while True:
-
             # Read from ESPNOW
-
-            networking.aen.irq(self.receive())
-            placeholder = networking.aen.rssi()
+            self.networking.aen.irq(self.receive())
+            placeholder = self.networking.aen.rssi()
             rssi_value = placeholder[b'T2\x043H\x14'][0]
             
             # if message is detected AND rssi is within the threashold, player gets hit
-
             if self.msg == 'dragon' and rssi_value > -70:
                 self.hit = 1
 
             # If a player is dead, advertise their ID, if not, put them in jail
             if self.hit == 1:
-
                 message =  f'im dead'
-                networking.aen.send(recipient_mac, message)
+                self.networking.aen.send(self.recipient_mac, message)
             
             await asyncio.sleep(0.1)
-
             
     '''
-    Function to handle the neopixel state:
+    Function to handle the LED state:
         Dead: Neopixel Off
         Alive: Solid White
     '''
@@ -80,8 +67,3 @@ class Wizard:
         task2 = self.neoPixel()
 
         asyncio.gather(task1, task2)
-
-wizard = Wizard(1)
-
-while True: 
-    await 
