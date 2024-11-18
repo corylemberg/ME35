@@ -15,32 +15,45 @@ networking = Networking()
 recipient_mac = b'\xFF\xFF\xFF\xFF\xFF\xFF' #This mac sends to all
 
 class Dragon:
-    def __init__(self):
+    def __init__(self, playerCount = 4):
         self.button = Pin('GPIO20', Pin.IN)
         self.led = neopixel.NeoPixel(Pin(28),1)
         self.cooldown = 0
-        self.totalGametime = 600 #10 minute timer 
+        self.totalGametime = 300 #5 minute timer 
         self.scorched = False #Boolean when all wizards have been scorched
-        self.wizardID = [0] * 13
+        self.wizards = {
+        }
+        self.msg = ''
+        self.incomingMac = b'\x00\x00\x00\x00\x00\x00'
+        self.playerCount = playerCount
+
 
     def receive(self):
         print("Receive")
+        for mac, message, rtime in networking.aen.return_messages(): #You can directly iterate over the function
+            self.msg = message
+            self.incomingMac = mac
 
     async def listen_ID(self):
+        
+        while True:
 
-        players = 0x0
+            if self.scorched:
+                break
 
-        #Check ID numbers
-        lastmsg = str(networking.aen.irq(self.receive))
-        #convert lastmsg to just the id number
-        idnumber = ''
+            # Receive wizard id
+            networking.aen.irq(self.receive())
 
-        if idnumber.isdigit():
-            players = players | (1 << int(idnumber))
-            if players == 0xF:
+            if self.incomingMac != None:
+                self.wizards[self.incomingMac] = 1
+
+            # Check if all wizards are hit
+            if len(self.wizards) == self.playerCount:
                 self.scorched = True
 
-        #Add ID number to array
+            self.msg = ''
+
+            await asyncio.sleep(0.1)
 
     async def breath_fire(self):
         prevButton = 0
@@ -48,7 +61,7 @@ class Dragon:
         while True:
             # Conditional to Breath Fire if button is pressed and not on cooldown
             if self.button != prevButton and prevButton and not self.cooldown:
-                networking.aen.send(recipient_mac, message)
+                networking.aen.echo(recipient_mac, message)
                 self.cooldown = 1
             prevButton = self.button
             await asyncio.sleep(0.05)
@@ -57,7 +70,7 @@ class Dragon:
         while True:
             # Begin 15 second cooldown
             if self.cooldown:
-                await asyncio.sleep(15)
+                await asyncio.sleep(15) 
                 self.cooldown = 0
 
     async def neoPixel(self):
@@ -90,6 +103,8 @@ class Dragon:
                 self.led[0] = RED #Wizards outlasted the timer
             await asyncio.sleep(.01)
 
+    
+
     async def main(self):
 
         task1 = self.breath_fire()
@@ -99,6 +114,5 @@ class Dragon:
         task5 = self.gameOver()
 
         asyncio.gather(task1, task2, task3, task4, task5)
-
 
 
