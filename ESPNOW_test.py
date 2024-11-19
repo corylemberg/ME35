@@ -3,14 +3,16 @@ from networking import Networking
 
 #Initialise
 networking = Networking()
-# recipient_mac = b'\x54\x32\x04\x21\x61\x9C' #This mac sends to all
+
+################### SENDING MESSAGES ###################
 recipient_mac = b'\xFF\xFF\xFF\xFF\xFF\xFF' #This mac sends to all
 message =  'hello'
-# while True:
-#     networking.aen.send(recipient_mac, message)
-#     time.sleep(1)
+while True:
+    networking.aen.send(recipient_mac, message)
+    time.sleep(1)
+########################################################
 
-#Set up an interrupt which runs a function as soon as possible after receiving a new message
+################## RECEIVING MESSAGES ##################
 def receive():
         print("Receive")
         for mac, message, rtime in networking.aen.return_messages(): #You can directly iterate over the function
@@ -18,6 +20,7 @@ def receive():
 while True:
     networking.aen.irq(receive())
     time.sleep(0.5)
+########################################################
 
 # while True:
 #     lastmsg = str(networking.aen.irq(receive))
