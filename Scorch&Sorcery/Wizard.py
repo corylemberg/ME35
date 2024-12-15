@@ -34,6 +34,9 @@ class Wizard:
             self.networking.aen.irq(self.receive())
             placeholder = self.networking.aen.rssi()
 
+            if self.msg == '!reset':
+                self.hit = 0
+
             try:
                 # rssi_value = placeholder[b'T2\x043H\x14'][0] #Cory ESP As Dragon
                 rssi_value = placeholder[b'T2\x04!a\x9c'][0] #Jaylen ESP As Dragon
